@@ -368,7 +368,7 @@ function ModelMenu({ chat, typed }: { chat: string; typed?: string }) {
     if (!m.fast) next.fast = false
     if (m.agent !== was.agent) {
       // another agent: the permission mode it also offers, else its nearest (core/agents.js permAcross)
-      next.perm = (AGc as unknown as { permAcross: (agent: string, perm: string | null | undefined, dflt: Record<string, string>) => string | null }).permAcross(m.agent, was.perm, d.permDefault)
+      next.perm = AGc.permAcross(m.agent, was.perm, d.permDefault)
       next.fast = false
     }
     return next
