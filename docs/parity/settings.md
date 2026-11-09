@@ -50,7 +50,7 @@ an add-on's line and Web's state; `service/settings.test.ts` checks the rows the
 | "Loading agents…" | `main.js` roleRow | value until the CLIs are read | ✓ |
 | Model menu | `mods/chat-models/main.js:180` Model (every installed CLI's models, ✓ on the one picked), Reasoning (segments), Fast (switch, where the model has it), Permissions (row, its mode, a small list) | `Role.tsx:71` ModelMenu: the same sections and words (MODEL_MENU), segments, MenuSwitch, a list under Permissions (was a dialog with Agent/Model/Effort/Speed pickers and Save) | ✓ |
 | A change saves at once | `lib/settings.js` settings mode: every change goes back | `Role.tsx` change() → setting at the page's level | ✓ |
-| Picking another CLI's model | `chat-models choose()`: effort kept where it has it, full access stays full access | core `chooseModel` | ✓ |
+| Picking another CLI's model | `chat-models choose()`: effort kept where it has it; the permission mode stays when the other CLI offers it, else its nearest (`core/agents.js` permAcross) | core `chooseModel` | ✓ |
 | A model row's CLI icon | CLI icon at the left | the CLI's name as the row's hint | ◇ the web has no CLI icons |
 | Use other CLI | `main.js` roleRow: Everywhere, Reviewer set | `Settings.tsx` Control (row.agent.other) | ✓ |
 | Edit instructions | `main.js` roleRow: Everywhere only | `Settings.tsx` Control (row.file only on Everywhere) | ✓ |
