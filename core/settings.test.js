@@ -46,6 +46,9 @@ test("the model button says what the window's does", () => {
   // another CLI's model: its own permission modes, full access staying full access
   expect(S.chooseModel(menus, { codex: "auto" }, { agent: "claude", model: "opus", effort: "max", perm: "bypassPermissions" }, "codex", "gpt-5"))
     .toMatchObject({ agent: "codex", model: "gpt-5", effort: null, perm: "full" });
+  // #758: auto survives a switch (it used to come back as the other CLI's default)
+  expect(S.chooseModel(menus, { claude: "manual", codex: "auto" }, { agent: "claude", model: "opus", effort: null, perm: "auto" }, "codex", "gpt-5").perm).toBe("auto");
+  expect(S.chooseModel(menus, { claude: "manual", codex: "auto" }, { agent: "codex", model: "gpt-5", effort: null, perm: "auto" }, "claude", "opus").perm).toBe("auto");
 });
 
 test("Backup's warning, an add-on's line and Web's state, in the window's words", () => {

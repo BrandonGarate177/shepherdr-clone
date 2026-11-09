@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { argvFor, current, line, menuFor, modelSections, parseDefaults, parsePicks, pickKey, withPin, withRecent } from "./agents.js";
+import { argvFor, current, line, menuFor, modelSections, parseDefaults, parsePicks, pickKey, withPin, withRecent, permAcross } from "./agents.js";
 
 const codex = { models: Array.from({ length: 250 }, (_, i) => ({ id: `gpt-${i}`, label: `GPT ${i}`, efforts: ["low", "high"] })) };
 const menus = { claude: menuFor("claude", {}), codex: menuFor("codex", codex) };
@@ -68,4 +68,28 @@ test("every agent with a fast mode shows the Fast switch, and turning it off sti
   expect(current("codex", on, {}, dflt).fast).toBe(true);
   const claudeOff = argvFor({ agent: "claude", model: "opus", fast: false }, { agent: "claude", argv: ["claude"] }).argv;
   expect(current("claude", claudeOff, {}, { fast: true }).fast).toBe(false);
+});
+
+// Issue #758: switching the worker's agent in Settings reset auto to Claude's default (manual), so every task
+// started from then on stopped at its first permission prompt. Only full access survived.
+test("a permission mode survives the agent switch: kept, else the nearest, else the default", () => {
+  const dflt = { claude: "manual", codex: "auto" };
+  // the same id on both: kept
+  expect(permAcross("codex", "auto", dflt)).toBe("auto");
+  expect(permAcross("claude", "auto", dflt)).toBe("auto");
+  // full access stays full access
+  expect(permAcross("codex", "bypassPermissions", dflt)).toBe("full");
+  expect(permAcross("claude", "full", dflt)).toBe("bypassPermissions");
+  // the nearest: Ask and Plan read-only on Codex, Read only asks on Claude, Accept edits is Codex's Auto
+  expect(permAcross("codex", "manual", dflt)).toBe("read-only");
+  expect(permAcross("codex", "plan", dflt)).toBe("read-only");
+  expect(permAcross("codex", "acceptEdits", dflt)).toBe("auto");
+  expect(permAcross("claude", "read-only", dflt)).toBe("manual");
+  // nothing chosen, or a mode neither knows: the CLI's default
+  expect(permAcross("codex", null, dflt)).toBe("auto");
+  expect(permAcross("claude", "something-old", dflt)).toBe("manual");
+  expect(permAcross("claude", "auto", {})).toBe("auto");
+  expect(permAcross("codex", "something-old", {})).toBeNull();
+  // the round trip from the issue: claude auto -> codex -> claude is still auto
+  expect(permAcross("claude", permAcross("codex", "auto", dflt), dflt)).toBe("auto");
 });

@@ -23,7 +23,7 @@
 import { View, div, svg, image } from "gpui-kit";
 import { h_flex, v_flex, InputState, Input, VirtualListScrollHandle, v_virtual_list, Scrollbar } from "gpui-base";
 import { theme, props, setShared, closeOverlay, home, readTextFile, writeTextFile } from "herdr";
-import { modelSections, parsePicks, pickKey, withPin, withRecent, PICKS_FILE } from "./core/agents.js";
+import { modelSections, parsePicks, pickKey, withPin, withRecent, permAcross, PICKS_FILE } from "./core/agents.js";
 
 const AGENTS = ["claude", "codex"];
 const LEVEL = { minimal: "Minimal", low: "Low", medium: "Medium", high: "High", xhigh: "Extra high", max: "Max", ultra: "Ultra", none: "None" };
@@ -114,9 +114,8 @@ export default class ModelMenu extends View {
     if (next.effort && !m.efforts.includes(next.effort)) next.effort = null;
     if (!m.fast) next.fast = false;
     if (m.agent !== was.agent) {
-      // Another agent: its own permission modes; full access stays full access.
-      const full = was.perm === "bypassPermissions" || was.perm === "full";
-      next.perm = full ? (m.agent === "claude" ? "bypassPermissions" : "full") : this.p.permDefault?.[m.agent] ?? null;
+      // Another agent: the permission mode it also offers, else its nearest (core/agents.js permAcross).
+      next.perm = permAcross(m.agent, was.perm, this.p.permDefault);
       next.fast = false;
     }
     this.sel = next;

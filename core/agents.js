@@ -21,6 +21,18 @@ const PERMS = {
     { id: "plan", label: "Plan" }, { id: "bypassPermissions", label: "Full access" }],
   codex: [{ id: "read-only", label: "Read only" }, { id: "auto", label: "Auto" }, { id: "full", label: "Full access" }],
 };
+// A permission mode carried over to another CLI when the model menu switches agents: the same id when the other
+// offers it (auto), else its nearest mode, else that CLI's default. Issue #758: before, only full access survived
+// the switch and auto on Claude came back as manual (Ask), so every task started from then on stopped at its first
+// prompt.
+const PERM_ACROSS = {
+  claude: { "read-only": "manual", full: "bypassPermissions" },
+  codex: { manual: "read-only", plan: "read-only", acceptEdits: "auto", bypassPermissions: "full" },
+};
+export function permAcross(agent, perm, permDefault) {
+  if (perm && PERMS[agent]?.some((p) => p.id === perm)) return perm;
+  return (perm && PERM_ACROSS[agent]?.[perm]) ?? permDefault?.[agent] ?? null;
+}
 
 // What a model id says, in words: "claude-opus-5-5" → "Opus 5.5", "opus[1m]" → "Opus 1M".
 export function modelName(id) {

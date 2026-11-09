@@ -3,7 +3,7 @@
 // web app's Settings say the same. herdr-task reads the file (herdr_task/settings.py: settings_for); its defaults are
 // DEFAULTS there and here.
 // Shared core: the source is core/settings.js; bin/sync-shared copies it into the mods in lib/COPIES.
-import { NAMES, levelName, current, rowFor, menuFor } from "./agents.js";
+import { NAMES, levelName, current, rowFor, menuFor, permAcross } from "./agents.js";
 import { SERVE } from "./host.js";
 
 // ---- the frame -------------------------------------------------------------------------------------------------
@@ -169,8 +169,8 @@ export function roleSel(role, own, choices, worker) {
     return { sel: { agent: o, model: choices.menus[o].models[0]?.id ?? null, effort: null, fast: false, perm: choices.permDefault?.[o] ?? null }, unset: true };
   return { sel: choices?.defaults ? { ...choices.defaults } : null, unset: true };
 }
-// A model picked in the menu: the effort and speed stay where it has them; another agent brings its own permission
-// modes (full access staying full access).
+// A model picked in the menu: the effort and speed stay where it has them; another agent keeps the permission mode
+// when it offers it, else its nearest (agents.js permAcross).
 export function chooseModel(menus, permDefault, sel, agent, id) {
   const m = menus?.[agent]?.models?.find((x) => x.id === id);
   if (!m) return sel;
@@ -178,8 +178,7 @@ export function chooseModel(menus, permDefault, sel, agent, id) {
   if (next.effort && !m.efforts.includes(next.effort)) next.effort = null;
   if (!m.fast) next.fast = false;
   if (agent !== sel.agent) {
-    const full = sel.perm === "bypassPermissions" || sel.perm === "full";
-    next.perm = full ? (agent === "claude" ? "bypassPermissions" : "full") : permDefault?.[agent] ?? null;
+    next.perm = permAcross(agent, sel.perm, permDefault);
     next.fast = false;
   }
   return next;
